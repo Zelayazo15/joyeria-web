@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>A&E Joyería Elegance</title>
 
@@ -77,6 +82,7 @@
     }
 
     /* PANEL ADMIN */
+
     .admin-panel{
       background:white;
       padding:25px;
@@ -100,9 +106,12 @@
       display:none;
     }
 
+    /* GALERIA */
+
     .gallery{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      grid-template-columns:
+      repeat(auto-fit,minmax(250px,1fr));
       gap:20px;
     }
 
@@ -123,6 +132,7 @@
       width:100%;
       height:300px;
       object-fit:cover;
+      cursor:pointer;
     }
 
     .card-content{
@@ -131,6 +141,12 @@
 
     .card-content h3{
       margin-bottom:10px;
+    }
+
+    .status{
+      font-weight:bold;
+      margin-bottom:10px;
+      color:green;
     }
 
     .whatsapp-btn{
@@ -158,6 +174,17 @@
       display:none;
     }
 
+    .status-btn{
+      margin-top:10px;
+      background:#444;
+      color:white;
+      border:none;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      display:none;
+    }
+
     .qr-box{
       margin-top:25px;
       text-align:center;
@@ -177,6 +204,60 @@
       margin-top:40px;
     }
 
+    /* MODAL */
+
+    .modal{
+
+      display:none;
+
+      position:fixed;
+
+      z-index:9999;
+
+      left:0;
+
+      top:0;
+
+      width:100%;
+
+      height:100%;
+
+      background:rgba(0,0,0,0.95);
+
+      justify-content:center;
+
+      align-items:center;
+
+      padding:20px;
+
+    }
+
+    .modal-content{
+
+      max-width:95%;
+
+      max-height:90vh;
+
+      border-radius:15px;
+
+    }
+
+    .close-modal{
+
+      position:absolute;
+
+      top:20px;
+
+      right:35px;
+
+      color:white;
+
+      font-size:50px;
+
+      cursor:pointer;
+
+    }
+
     @media(max-width:600px){
 
       .logo-big{
@@ -190,7 +271,9 @@
     }
 
   </style>
+
 </head>
+
 <body>
 
 <header>
@@ -199,7 +282,9 @@
     A&E
   </div>
 
-  <h1>JOYERÍA ELEGANCE</h1>
+  <h1>
+    JOYERÍA ELEGANCE
+  </h1>
 
   <p>
     Catálogo Exclusivo de Joyas
@@ -226,7 +311,11 @@
 <div class="container">
 
   <!-- PANEL ADMIN -->
-  <div class="admin-panel" id="adminPanel">
+
+  <div
+    class="admin-panel"
+    id="adminPanel"
+  >
 
     <h2>
       Panel Privado
@@ -261,8 +350,12 @@
 
   </div>
 
-  <!-- GALERÍA -->
-  <div class="gallery" id="gallery"></div>
+  <!-- GALERIA -->
+
+  <div
+    class="gallery"
+    id="gallery"
+  ></div>
 
 </div>
 
@@ -276,11 +369,18 @@
   © 2026 A&E Joyería Elegance
 
 </footer>
-<!-- MODAL IMAGEN -->
 
-<div id="imageModal" class="modal">
+<!-- MODAL -->
 
-  <span class="close-modal" onclick="closeModal()">
+<div
+  id="imageModal"
+  class="modal"
+>
+
+  <span
+    class="close-modal"
+    onclick="closeModal()"
+  >
     &times;
   </span>
 
@@ -290,18 +390,17 @@
   >
 
 </div>
+
 <script>
 
   // ========= CONFIG =========
 
-  // CAMBIA ESTA CLAVE
-  const adminPassword = "A&E2026";
+  const adminPassword =
+    "A&E2026";
 
-  // LINK DE TU WEB
   const websiteURL =
-    "https://TU-SITIO.netlify.app";
+    "https://jovial-lollipop-c8942a.netlify.app";
 
-  // WHATSAPP
   const whatsappNumber =
     "50376817296";
 
@@ -317,7 +416,11 @@
     document.getElementById("adminPanel");
 
   let products = JSON.parse(
-    localStorage.getItem("joyeriaProducts")
+
+    localStorage.getItem(
+      "joyeriaProducts"
+    )
+
   ) || [];
 
   // ========= LOGIN ADMIN =========
@@ -337,11 +440,6 @@
 
       adminPanel.style.display = "block";
 
-      document.querySelectorAll(".delete-btn")
-        .forEach(btn=>{
-          btn.style.display = "block";
-        });
-
     }
 
   }
@@ -359,6 +457,16 @@
 
       card.className = "card";
 
+      const statusText =
+        product.available
+        ? "DISPONIBLE"
+        : "NO DISPONIBLE";
+
+      const statusColor =
+        product.available
+        ? "green"
+        : "red";
+
       card.innerHTML = `
 
         <button
@@ -368,7 +476,10 @@
           ×
         </button>
 
-        <img src="${product.image}">
+        <img
+          src="${product.image}"
+          onclick="openModal('${product.image}')"
+        >
 
         <div class="card-content">
 
@@ -376,8 +487,11 @@
             Joya Exclusiva
           </h3>
 
-          <p>
-            Diseño elegante disponible.
+          <p
+            class="status"
+            style="color:${statusColor}"
+          >
+            ${statusText}
           </p>
 
           <a
@@ -390,6 +504,17 @@
 
           </a>
 
+          <br>
+
+          <button
+            class="status-btn"
+            onclick="toggleStatus(${index})"
+          >
+
+            Cambiar Estado
+
+          </button>
+
         </div>
 
       `;
@@ -398,7 +523,8 @@
 
     });
 
-    // Mostrar botones eliminar solo admin
+    // MOSTRAR BOTONES ADMIN
+
     if(adminMode === "true"){
 
       document.querySelectorAll(".delete-btn")
@@ -406,13 +532,18 @@
         btn.style.display = "block";
       });
 
+      document.querySelectorAll(".status-btn")
+      .forEach(btn=>{
+        btn.style.display = "inline-block";
+      });
+
     }
 
   }
 
-  // ========= SUBIR IMÁGENES =========
+  // ========= SUBIR IMAGENES =========
 
-  fileInput.addEventListener("change", function(e){
+  fileInput.addEventListener("change",function(e){
 
     const files = e.target.files;
 
@@ -423,10 +554,11 @@
 
       reader.onload = function(event){
 
-        // AGREGA AL PRINCIPIO
         products.unshift({
 
-          image:event.target.result
+          image:event.target.result,
+
+          available:true
 
         });
 
@@ -466,6 +598,47 @@
 
   }
 
+  // ========= CAMBIAR ESTADO =========
+
+  function toggleStatus(index){
+
+    products[index].available =
+      !products[index].available;
+
+    localStorage.setItem(
+
+      "joyeriaProducts",
+
+      JSON.stringify(products)
+
+    );
+
+    renderGallery();
+
+  }
+
+  // ========= MODAL =========
+
+  function openModal(imageSrc){
+
+    document.getElementById(
+      "imageModal"
+    ).style.display = "flex";
+
+    document.getElementById(
+      "modalImage"
+    ).src = imageSrc;
+
+  }
+
+  function closeModal(){
+
+    document.getElementById(
+      "imageModal"
+    ).style.display = "none";
+
+  }
+
   // ========= QR =========
 
   new QRCode(
@@ -483,6 +656,8 @@
     }
 
   );
+
+  // ========= INICIAR =========
 
   renderGallery();
 
