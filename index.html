@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>A&E Joyería Elegance</title>
+
+  <!-- QR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
+      background:#f5f5f5;
+      color:#222;
+    }
+
+    header{
+      background:#111;
+      color:white;
+      text-align:center;
+      padding:30px;
+    }
+
+    .logo-big{
+      font-size:60px;
+      font-weight:bold;
+      letter-spacing:5px;
+      margin-bottom:10px;
+    }
+
+    header h1{
+      font-size:32px;
+      letter-spacing:2px;
+    }
+
+    header p{
+      margin-top:10px;
+      color:#ccc;
+    }
+
+    .hero{
+      height:320px;
+      background:url('https://images.unsplash.com/photo-1617038220319-276d3cfab638?q=80&w=1400&auto=format&fit=crop') center/cover;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:20px;
+    }
+
+    .hero-box{
+      background:rgba(0,0,0,0.65);
+      color:white;
+      padding:30px;
+      border-radius:15px;
+    }
+
+    .hero-box h2{
+      font-size:40px;
+      margin-bottom:10px;
+    }
+
+    .container{
+      width:92%;
+      max-width:1200px;
+      margin:auto;
+      padding:40px 0;
+    }
+
+    /* PANEL ADMIN */
+    .admin-panel{
+      background:white;
+      padding:25px;
+      border-radius:15px;
+      margin-bottom:40px;
+      box-shadow:0 5px 15px rgba(0,0,0,0.08);
+      display:none;
+    }
+
+    .upload-btn{
+      display:inline-block;
+      background:#111;
+      color:white;
+      padding:12px 20px;
+      border-radius:10px;
+      cursor:pointer;
+      margin-top:15px;
+    }
+
+    input[type=file]{
+      display:none;
+    }
+
+    .gallery{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:20px;
+    }
+
+    .card{
+      background:white;
+      border-radius:15px;
+      overflow:hidden;
+      box-shadow:0 5px 15px rgba(0,0,0,0.08);
+      position:relative;
+      transition:0.3s;
+    }
+
+    .card:hover{
+      transform:translateY(-5px);
+    }
+
+    .card img{
+      width:100%;
+      height:300px;
+      object-fit:cover;
+    }
+
+    .card-content{
+      padding:15px;
+    }
+
+    .card-content h3{
+      margin-bottom:10px;
+    }
+
+    .whatsapp-btn{
+      display:inline-block;
+      margin-top:10px;
+      background:#111;
+      color:white;
+      padding:10px 15px;
+      text-decoration:none;
+      border-radius:8px;
+    }
+
+    .delete-btn{
+      position:absolute;
+      top:10px;
+      right:10px;
+      width:35px;
+      height:35px;
+      border:none;
+      border-radius:50%;
+      background:red;
+      color:white;
+      font-size:18px;
+      cursor:pointer;
+      display:none;
+    }
+
+    .qr-box{
+      margin-top:25px;
+      text-align:center;
+    }
+
+    #qrcode{
+      display:flex;
+      justify-content:center;
+      margin-top:15px;
+    }
+
+    footer{
+      background:#111;
+      color:white;
+      text-align:center;
+      padding:25px;
+      margin-top:40px;
+    }
+
+    @media(max-width:600px){
+
+      .logo-big{
+        font-size:45px;
+      }
+
+      .hero-box h2{
+        font-size:28px;
+      }
+
+    }
+
+  </style>
+</head>
+<body>
+
+<header>
+
+  <div class="logo-big">
+    A&E
+  </div>
+
+  <h1>JOYERÍA ELEGANCE</h1>
+
+  <p>
+    Catálogo Exclusivo de Joyas
+  </p>
+
+</header>
+
+<section class="hero">
+
+  <div class="hero-box">
+
+    <h2>
+      Brilla con Elegancia
+    </h2>
+
+    <p>
+      Descubre nuestras últimas joyas disponibles
+    </p>
+
+  </div>
+
+</section>
+
+<div class="container">
+
+  <!-- PANEL ADMIN -->
+  <div class="admin-panel" id="adminPanel">
+
+    <h2>
+      Panel Privado
+    </h2>
+
+    <p>
+      Solo tú podrás subir imágenes nuevas.
+    </p>
+
+    <label class="upload-btn">
+
+      Subir Imágenes
+
+      <input
+        type="file"
+        id="fileInput"
+        multiple
+        accept="image/*"
+      >
+
+    </label>
+
+    <div class="qr-box">
+
+      <h3>
+        QR del Sitio
+      </h3>
+
+      <div id="qrcode"></div>
+
+    </div>
+
+  </div>
+
+  <!-- GALERÍA -->
+  <div class="gallery" id="gallery"></div>
+
+</div>
+
+<footer>
+
+  WhatsApp:
+  +503 7681-7296
+
+  <br><br>
+
+  © 2026 A&E Joyería Elegance
+
+</footer>
+
+<script>
+
+  // ========= CONFIG =========
+
+  // CAMBIA ESTA CLAVE
+  const adminPassword = "A&E2026";
+
+  // LINK DE TU WEB
+  const websiteURL =
+    "https://TU-SITIO.netlify.app";
+
+  // WHATSAPP
+  const whatsappNumber =
+    "50376817296";
+
+  // ==========================
+
+  const gallery =
+    document.getElementById("gallery");
+
+  const fileInput =
+    document.getElementById("fileInput");
+
+  const adminPanel =
+    document.getElementById("adminPanel");
+
+  let products = JSON.parse(
+    localStorage.getItem("joyeriaProducts")
+  ) || [];
+
+  // ========= LOGIN ADMIN =========
+
+  const urlParams =
+    new URLSearchParams(window.location.search);
+
+  const adminMode =
+    urlParams.get("admin");
+
+  if(adminMode === "true"){
+
+    const password =
+      prompt("Ingrese contraseña");
+
+    if(password === adminPassword){
+
+      adminPanel.style.display = "block";
+
+      document.querySelectorAll(".delete-btn")
+        .forEach(btn=>{
+          btn.style.display = "block";
+        });
+
+    }
+
+  }
+
+  // ========= MOSTRAR PRODUCTOS =========
+
+  function renderGallery(){
+
+    gallery.innerHTML = "";
+
+    products.forEach((product,index)=>{
+
+      const card =
+        document.createElement("div");
+
+      card.className = "card";
+
+      card.innerHTML = `
+
+        <button
+          class="delete-btn"
+          onclick="deleteProduct(${index})"
+        >
+          ×
+        </button>
+
+        <img src="${product.image}">
+
+        <div class="card-content">
+
+          <h3>
+            Joya Exclusiva
+          </h3>
+
+          <p>
+            Diseño elegante disponible.
+          </p>
+
+          <a
+            class="whatsapp-btn"
+            target="_blank"
+            href="https://wa.me/${whatsappNumber}?text=Hola%20estoy%20interesado%20en%20sus%20productos"
+          >
+
+            Consultar por WhatsApp
+
+          </a>
+
+        </div>
+
+      `;
+
+      gallery.appendChild(card);
+
+    });
+
+    // Mostrar botones eliminar solo admin
+    if(adminMode === "true"){
+
+      document.querySelectorAll(".delete-btn")
+      .forEach(btn=>{
+        btn.style.display = "block";
+      });
+
+    }
+
+  }
+
+  // ========= SUBIR IMÁGENES =========
+
+  fileInput.addEventListener("change", function(e){
+
+    const files = e.target.files;
+
+    Array.from(files).forEach(file=>{
+
+      const reader =
+        new FileReader();
+
+      reader.onload = function(event){
+
+        // AGREGA AL PRINCIPIO
+        products.unshift({
+
+          image:event.target.result
+
+        });
+
+        localStorage.setItem(
+
+          "joyeriaProducts",
+
+          JSON.stringify(products)
+
+        );
+
+        renderGallery();
+
+      }
+
+      reader.readAsDataURL(file);
+
+    });
+
+  });
+
+  // ========= ELIMINAR =========
+
+  function deleteProduct(index){
+
+    products.splice(index,1);
+
+    localStorage.setItem(
+
+      "joyeriaProducts",
+
+      JSON.stringify(products)
+
+    );
+
+    renderGallery();
+
+  }
+
+  // ========= QR =========
+
+  new QRCode(
+
+    document.getElementById("qrcode"),
+
+    {
+
+      text:websiteURL,
+
+      width:180,
+
+      height:180
+
+    }
+
+  );
+
+  renderGallery();
+
+</script>
+
+</body>
+</html>
