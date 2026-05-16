@@ -14,6 +14,9 @@
   <!-- QR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
+  <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
   <style>
 
     *{
@@ -146,7 +149,6 @@
     .status{
       font-weight:bold;
       margin-bottom:10px;
-      color:green;
     }
 
     .whatsapp-btn{
@@ -393,6 +395,20 @@
 
 <script>
 
+  // ========= SUPABASE =========
+
+  const supabaseUrl =
+    "https://dwblvytrbofbhxemyzip.supabase.co";
+
+  const supabaseKey =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3Ymx2eXRyYm9mYmh4ZW15emlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwNDEyNTMsImV4cCI6MjA4MDYxNzI1M30.U3QNMrLJlZExhLQZRrmkk29suWBt0G9EpQaaL6OvUaI";
+
+  const supabaseClient =
+    supabase.createClient(
+      supabaseUrl,
+      supabaseKey
+    );
+
   // ========= CONFIG =========
 
   const adminPassword =
@@ -404,7 +420,7 @@
   const whatsappNumber =
     "50376817296";
 
-  // ==========================
+  // ========= ELEMENTOS =========
 
   const gallery =
     document.getElementById("gallery");
@@ -414,14 +430,6 @@
 
   const adminPanel =
     document.getElementById("adminPanel");
-
-  let products = JSON.parse(
-
-    localStorage.getItem(
-      "joyeriaProducts"
-    )
-
-  ) || [];
 
   // ========= LOGIN ADMIN =========
 
@@ -438,45 +446,64 @@
 
     if(password === adminPassword){
 
-      adminPanel.style.display = "block";
+      adminPanel.style.display =
+        "block";
 
     }
 
   }
 
-  // ========= MOSTRAR PRODUCTOS =========
+  // ========= CARGAR PRODUCTOS =========
 
-  function renderGallery(){
+  async function loadProducts(){
 
     gallery.innerHTML = "";
 
-    products.forEach((product,index)=>{
+    const {
+      data,
+      error
+    } = await supabaseClient
+
+      .from("productos")
+
+      .select("*")
+
+      .order("created_at",{
+
+        ascending:false
+
+      });
+
+    if(error){
+
+      console.log(error);
+
+      return;
+
+    }
+
+    data.forEach((product)=>{
+
+      const statusText =
+        product.disponible
+        ? "DISPONIBLE"
+        : "NO DISPONIBLE";
+
+      const statusColor =
+        product.disponible
+        ? "green"
+        : "white";
 
       const card =
         document.createElement("div");
 
       card.className = "card";
 
-      const statusText =
-        product.available
-        ? "DISPONIBLE"
-
-      const statusColor =
-        product.available
-        ? "green"
-
       card.innerHTML = `
 
-        <button
-          class="delete-btn"
-          onclick="deleteProduct(${index})"
-        >
-          ×
-        </button>
-
         <img
-          src="${product.image}"
-          onclick="openModal('${product.image}')"
+          src="${product.imagen}"
+          onclick="openModal('${product.imagen}')"
         >
 
         <div class="card-content">
@@ -506,7 +533,7 @@
 
           <button
             class="status-btn"
-            onclick="toggleStatus(${index})"
+            onclick="toggleStatus(${product.id}, ${product.disponible})"
           >
 
             Cambiar Estado
@@ -517,101 +544,160 @@
 
       `;
 
+      // ========= BOTONES ADMIN =========
+
+      if(adminMode === "true"){
+
+        const deleteBtn =
+          document.createElement("button");
+
+        deleteBtn.innerHTML = "×";
+
+        deleteBtn.className =
+          "delete-btn";
+
+        deleteBtn.style.display =
+          "block";
+
+        deleteBtn.onclick =
+          ()=>deleteProduct(product.id);
+
+        card.appendChild(deleteBtn);
+
+      }
+
       gallery.appendChild(card);
 
     });
 
-    // MOSTRAR BOTONES ADMIN
+    // ========= MOSTRAR BOTONES ADMIN =========
 
     if(adminMode === "true"){
 
-      document.querySelectorAll(".delete-btn")
-      .forEach(btn=>{
-        btn.style.display = "block";
-      });
-
       document.querySelectorAll(".status-btn")
       .forEach(btn=>{
-        btn.style.display = "inline-block";
+
+        btn.style.display =
+          "inline-block";
+
       });
 
     }
 
   }
 
-  // ========= SUBIR IMAGENES =========
+  // ========= SUBIR IMAGEN =========
 
-  fileInput.addEventListener("change",function(e){
+  fileInput.addEventListener(
 
-    const files = e.target.files;
+    "change",
 
-    Array.from(files).forEach(file=>{
+    async function(e){
 
-      const reader =
-        new FileReader();
+      const files =
+        e.target.files;
 
-      reader.onload = function(event){
+      for(const file of files){
 
-        products.unshift({
+        const fileName =
+          Date.now() + "-" + file.name;
 
-          image:event.target.result,
+        // ========= SUBIR STORAGE =========
 
-          available:true
+        const {
 
-        });
+          error:uploadError
 
-        localStorage.setItem(
+        } = await supabaseClient
 
-          "joyeriaProducts",
+        .storage
 
-          JSON.stringify(products)
+        .from("joyeria")
 
-        );
+        .upload(fileName,file);
 
-        renderGallery();
+        if(uploadError){
+
+          console.log(uploadError);
+
+          continue;
+
+        }
+
+        // ========= OBTENER URL =========
+
+        const {
+
+          data:urlData
+
+        } = supabaseClient
+
+        .storage
+
+        .from("joyeria")
+
+        .getPublicUrl(fileName);
+
+        // ========= INSERTAR DB =========
+
+        await supabaseClient
+
+        .from("productos")
+
+        .insert([{
+
+          imagen:
+            urlData.publicUrl,
+
+          disponible:true
+
+        }]);
 
       }
 
-      reader.readAsDataURL(file);
+      loadProducts();
 
-    });
+    }
 
-  });
+  );
 
   // ========= ELIMINAR =========
 
-  function deleteProduct(index){
+  async function deleteProduct(id){
 
-    products.splice(index,1);
+    await supabaseClient
 
-    localStorage.setItem(
+      .from("productos")
 
-      "joyeriaProducts",
+      .delete()
 
-      JSON.stringify(products)
+      .eq("id",id);
 
-    );
-
-    renderGallery();
+    loadProducts();
 
   }
 
   // ========= CAMBIAR ESTADO =========
 
-  function toggleStatus(index){
+  async function toggleStatus(
+    id,
+    currentStatus
+  ){
 
-    products[index].available =
-      !products[index].available;
+    await supabaseClient
 
-    localStorage.setItem(
+      .from("productos")
 
-      "joyeriaProducts",
+      .update({
 
-      JSON.stringify(products)
+        disponible:
+          !currentStatus
 
-    );
+      })
 
-    renderGallery();
+      .eq("id",id);
+
+    loadProducts();
 
   }
 
@@ -641,7 +727,9 @@
 
   new QRCode(
 
-    document.getElementById("qrcode"),
+    document.getElementById(
+      "qrcode"
+    ),
 
     {
 
@@ -657,7 +745,7 @@
 
   // ========= INICIAR =========
 
-  renderGallery();
+  loadProducts();
 
 </script>
 
